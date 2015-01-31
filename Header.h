@@ -9,8 +9,16 @@ class record
 {
 protected:
 	int matrix[6][6];
-	enum possible_rowscol_t {full,not_full,comp_row,comp_col};
+	int matrix_clone[6][6];
+
+	enum possible_rowscol_t {full,not_full,ready_full,comp_row,comp_col};
 	possible_rowscol_t *row,*col;
+	possible_rowscol_t row_status[6], col_status[6],diag1_status[3],diag1_1_status,diag1_2_status,diag2_status[3],diag2_1_status,diag2_2_status;
+	
+	enum row_cols_diag {rows,columns,diagonal_1,diagonal_1_1,diagonal_1_2,diagonal_2,diagonal_2_1,diagonal_2_2};
+    row_cols_diag identifier;
+
+	int pos_row, pos_col, pos_diag1, pos_diag2;
 	
 public:
 	record()
@@ -18,15 +26,28 @@ public:
 		row = new possible_rowscol_t[];
 		col = new possible_rowscol_t[];
 
+		identifier = rows;
+
 	for (int i = 0; i < 6; i++)
 	{
 		for(int j = 0; j < 6; j++)
 		{
 		matrix[i][j] = 0;
+		matrix_clone[i][j] = 0;
+		row_status[i] = not_full;
+		col_status[i] = not_full;
+		if( i < 3)
+		{
+		diag1_status[i] = not_full;
+		diag2_status[i] = not_full;
+		}
 		row[i] = not_full;
 		col[i] = not_full;
 		}
 	}
+	
+	diag1_1_status = diag1_2_status = diag2_1_status = diag2_2_status = not_full;
+	pos_row = pos_col = pos_diag1 = pos_diag2 = 0;
 	}
 	
 void player_move(int x, int y, SDL_Rect* r)
@@ -38,7 +59,6 @@ int j = ceil(x/100) - 1;
 r->x = 100 + j*100;
 r->y = 100 + i*100;
 
-//cout << "x: " << i << "y:" << j;
 
 if(matrix[i][j] == 0)
 {
@@ -49,7 +69,6 @@ if(matrix[i][j] == 0)
 else
 cout << "occupied";
 
-//see();
 }
 
 void see()
@@ -59,7 +78,7 @@ for (int i = 0; i < 6; i++)
 	{
 		for(int j = 0; j < 6; j++)
 		{
-			cout << "\t" << matrix[i][j];
+			cout << "\t" << matrix_clone[i][j];
 			if((j == 5)) 
 			cout << "\n\n";
 		}
@@ -71,43 +90,287 @@ for (int i = 0; i < 6; i++)
 bool computer_move()
 {
 	int i;
+	for (int i = 0; i < 6; i++)
+	{
+		for(int j = 0; j < 6; j++)
+		{
+		matrix_clone[i][j] = 0;
+		}
+	}
+
+	int boxes_to_count = 0;
+	int sum_of_boxes = 0;
+
+	//////////////////////////////////////////////////////////////////// check for completed rown and columns and diags and ignore them
+	boxes_to_count = 4;
+	sum_of_boxes = 4;
+	
+	cout << "\n Checking for taken rows";
+	if(check_num_stones_row(sum_of_boxes,&i,boxes_to_count) == true)
+	{
+	cout << " \nRow Taken = ";
+	}
+	if(check_num_stones_col(sum_of_boxes,&i,boxes_to_count) == true)
+	{
+	cout << " \nColumn Taken = ";
+	}
+	if(check_num_stones_diag1(sum_of_boxes,&i,boxes_to_count) == true)
+	{
+	cout << " \nThis diag taken = ";
+	}
+	if(check_num_stones_diag2(sum_of_boxes,&i,boxes_to_count) == true)
+	{
+	cout << " \nThis diag taken = ";
+	}
+
+	////////////////////////////////////////////////////////////////////////// check for 3 stones in a row and take action
+	boxes_to_count = 3;
+	sum_of_boxes = 3;
 	cout << " \nchecking for 3 consecutive swords";
-	if(check_num_stones_row(3,&i))
+	pos_row = pos_col = pos_diag1 = pos_diag2 = 0;
+
+	if(check_num_stones_row(sum_of_boxes,&i,boxes_to_count) == true)
 	{
-	cout << " \nrow found";
+	cout << " \nPossible rows = " << pos_row;
 	}
 
-	if(check_num_stones_col(3,&i))
+	if(check_num_stones_col(sum_of_boxes,&i,boxes_to_count) == true)
 	{
-	cout << " \ncol found";
+	cout << " \nPossible columns = " << pos_col;
 	}
 
-	if(check_num_stones_diag1(3,&i))
+	if(check_num_stones_diag1(sum_of_boxes,&i,boxes_to_count) == true)
 	{
-	cout << "\ndiag_1 found";
+	cout << " \nPossible diagonal one = " << pos_diag1;
 	}
 
-	if(check_num_stones_diag2(3,&i))
+	if(check_num_stones_diag2(sum_of_boxes,&i,boxes_to_count) == true)
 	{
-	cout << "\ndiag_2 found";
+	cout << " \nPossible diagonal two = " << pos_diag2;	}
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		////////////////////////////////////////////////////////////////////////// check for 3 stones in a row and take action
+	boxes_to_count = 4;
+	sum_of_boxes = 3;
+	cout << " \nchecking for misssing ";
+	pos_row = pos_col = pos_diag1 = pos_diag2 = 0;
+
+	if(check_num_stones_row(sum_of_boxes,&i,boxes_to_count) == true)
+	{
+	cout << " \nPossible rows = " << pos_row;
 	}
 
+	if(check_num_stones_col(sum_of_boxes,&i,boxes_to_count) == true)
+	{
+	cout << " \nPossible columns = " << pos_col;
+	}
+
+	if(check_num_stones_diag1(sum_of_boxes,&i,boxes_to_count) == true)
+	{
+	cout << " \nPossible diagonal one = " << pos_diag1;
+	}
+
+	if(check_num_stones_diag2(sum_of_boxes,&i,boxes_to_count) == true)
+	{
+	cout << " \nPossible diagonal two = " << pos_diag2;	}
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+	see();
 	return true;
 }
-bool check_num_stones_row(int s,int* ii)
+
+void check_XXX_(int i, int j, row_cols_diag identifier,int boxes)
+{
+
+	switch(identifier)
+	{
+	case rows:
+		if( j-1 >= 0)
+		{
+			if(matrix[i][j-1] == 0)
+				matrix_clone[i][j-1]++;
+		}
+	    if( j+boxes <= 5)
+		{
+			if(matrix[i][j+boxes] == 0)
+				matrix_clone[i][j+boxes]++;		
+		}
+		break;
+
+	case columns: 
+		if( i-1 >= 0)
+		{
+			if(matrix[i-1][j] == 0)
+				matrix_clone[i-1][j]++;
+		}
+	    if( i+boxes <= 5)
+		{
+			if(matrix[i+boxes][j] == 0)
+				matrix_clone[i+boxes][j]++;		
+		}
+		break;
+
+	case diagonal_1:
+
+		if(((i-1) >= 0) && ((j - 1) >= 0))
+		{
+		if(matrix[i-1][j-1] == 0)
+		matrix_clone[i-1][j-1]++;
+		}
+	    if(((i+boxes) <= 5) && ((j + boxes) <= 5))
+		{
+		if(matrix[i+boxes][j+boxes] == 0)
+		matrix_clone[i+boxes][j+boxes]++;
+		}
+		break;
+/*	case diagonal_1_1:
+		if(((i-1) >= 0) && ((j - 1) >= 0))
+		{
+		if(matrix[i-1][j-1] == 0)
+		matrix_clone[i-1][j-1]++;
+		}
+	    if(((i+boxes) <= 5) && ((j + boxes) <= 5))
+		{
+		if(matrix[i+boxes][j+boxes] == 0)
+		matrix_clone[i+boxes][j+boxes]++;
+		}
+
+		break;
+
+	case diagonal_1_2:
+		
+		if(((i-1) >= 0) && ((j - 1) >= 0))
+		{
+		if(matrix[i-1][j-1] == 0)
+		matrix_clone[i-1][j-1]++;
+		}
+	    if(((i+boxes) <= 6) && ((j + boxes) <= 6))
+		{
+		if(matrix[i+boxes][j+boxes] == 0)
+		matrix_clone[i+boxes][j+boxes]++;
+		}
+
+		break;*/
+	case diagonal_2:
+		if(((i-1) >= 0) && ((j + 1) <= 5))
+		{
+		if(matrix[i-1][j+1] == 0)
+		matrix_clone[i-1][j+1]++;
+		}
+	    if(((i+boxes) <= 5) && ((j - boxes) >= 0))
+		{
+		if(matrix[i+boxes][j-boxes] == 0)
+		matrix_clone[i+boxes][j-boxes]++;
+		}
+		break;
+	}
+}
+
+void check_XXXX_(int i, int j, row_cols_diag identifier)
+{
+	switch(identifier)
+	{
+	case rows:
+		row_status[i] = full;
+			break;
+	case columns:
+		col_status[j] = full;
+			break;
+	case diagonal_1:
+		diag1_status[j] = full;
+		break;
+	case diagonal_1_1:
+		diag1_1_status = full;
+		break;
+	case diagonal_1_2:
+		diag1_2_status = full;
+		break;
+	case diagonal_2:
+		diag2_status[j] = full;
+		break;
+	case diagonal_2_1:
+		diag2_1_status = full;
+		break;
+	case diagonal_2_2:
+		diag2_2_status = full;
+		break;
+	}
+}
+
+void check_XOXX_(int i, int j, row_cols_diag identifier)
+{
+	switch(identifier)
+	{
+	case rows:
+		if(matrix[i][j+1] == 0)
+			matrix_clone[i][j+1]++;
+		else
+		 matrix_clone[i][j+2]++;
+			break;
+	case columns:
+		if(matrix[i+1][j] == 0)
+			matrix_clone[i+1][j]++;
+		else
+		 matrix_clone[i+2][j]++;
+			break;
+	case diagonal_1:
+		if(matrix[i+1][j+1] == 0)
+			matrix_clone[i+1][j+1]++;
+		else
+		 matrix_clone[i+2][j+2]++;
+			break;
+	case diagonal_1_1:
+		if(matrix[i+1][j+1] == 0)
+			matrix_clone[i+1][j+1]++;
+		else
+		 matrix_clone[i+2][j+2]++;
+		break;
+	case diagonal_1_2:
+		if(matrix[i+1][j+1] == 0)
+			matrix_clone[i+1][j+1]++;
+		else
+		 matrix_clone[i+2][j+2]++;
+		break;
+	case diagonal_2:
+		if(matrix[i+1][j-1] == 0)
+			matrix_clone[i+1][j-1]++;
+		else
+		 matrix_clone[i+2][j-2]++;
+			break;
+	case diagonal_2_1:
+		if(matrix[i+1][j-1] == 0)
+			matrix_clone[i+1][j-1]++;
+		else
+		 matrix_clone[i+2][j-2]++;
+			break;
+	case diagonal_2_2:
+		if(matrix[i+1][j-1] == 0)
+			matrix_clone[i+1][j-1]++;
+		else
+		 matrix_clone[i+2][j-2]++;
+			break;
+	}
+}
+
+bool check_num_stones_row(int s,int* ii,int boxes)
 {
 	int sum = 0;
 	bool found = false;
 	int i = 0;	
 	int k = 0;
 	int j = 0;// the row whose some is S
+
+	//while(row_status[i] == full && i < 6)
+	//i++;
+
 	do
 	{
 	j = 0;
 	do{
 		k = j; 
 		sum = 0;
-	for(k; k < j + 3 ;k++)
+	for(k; k < j + boxes ;k++)
 	{
 	sum += matrix[i][k];
 	}
@@ -115,56 +378,90 @@ bool check_num_stones_row(int s,int* ii)
 	if(sum == s)
 	{
 		found = true;
-		cout << "\nstart: " <<  " " << i << " " << j << " " << matrix[i][j];
-		i = 6;
-		j = 3;
 		*ii = i;
 		sum = 0;
+		pos_row++;
+		if(s == 3 && boxes == 3 && row_status[i] != full)
+		{
+		identifier = rows;
+		check_XXX_(i, j, identifier,boxes); 
+		row_status[i] = ready_full;
+		}
+		else if( s == 4 && boxes == 4)
+		{
+		identifier = rows;
+		check_XXXX_(i,0,identifier);	
+		}
+	else if(s == 3 && boxes == 4 && row_status[i] == not_full)
+		{
+			identifier = rows;
+		cout << "\nJ" << i<<j;
+			check_XOXX_(i,j,identifier);
+		}
 	}
 
 	j++;
-	}while (j < 3);
+	}while (j <= 6 - boxes);
 	i++;
+
+//	while(row_status[i] != not_full && i < 6)
+//	i++;
 	}while(i < 6 );
 
 return found;
 }
 
-
-bool check_num_stones_col(int s,int* ii)
+bool check_num_stones_col(int s,int* ii,int boxes)
 {
 	int sum = 0;
 	bool found = false;
 	int i = 0;	
 	int k = 0;
-	int j = 0;// the row whose some is S
+	int j = 0;    // the row whose some is S
 	do
 	{
-	j = 0;
+	i = 0;
 	do{
-		k = j; 
+		k = i; 
 		sum = 0;
-	for(k; k < j + 3; k++)
+	for(k; k < i + boxes; k++)
 	{
-	sum += matrix[k][i];
+	sum += matrix[k][j];
 	}
 	
 	if(sum == s)
 	{
 		found = true;
-		i = 6;
-		j = 3;
 		*ii = i;
+		pos_col++;
+
+		if(s == 3 && boxes == 3 && col_status[j] != full)
+		{
+		identifier = columns;
+		check_XXX_(i, j, identifier,boxes); 
+		col_status[j] = ready_full;
+		}
+		else if( s == 4 && boxes == 4)
+		{
+		identifier = columns;
+		check_XXXX_(0,j,identifier);	
+		}
+		else if(s == 3 && boxes == 4 && col_status[j] == not_full)
+		{
+		identifier = columns;
+		check_XOXX_(i,j,identifier);
+		}
+
 	}
-	j++;
-	}while (j < 3);
 	i++;
-	}while(i < 6 );
+	}while (i <= 6 - boxes);
+	j++;
+	}while(j < 6 );
 
 return found;
 }
 
-bool check_num_stones_diag1(int s,int* ii)
+bool check_num_stones_diag1(int s,int* ii,int boxes)
 {
 
 	int sum = 0;
@@ -182,95 +479,149 @@ bool check_num_stones_diag1(int s,int* ii)
 		k = i;
 		l = ll;
 		sum = 0;
-	for(k; k < i + 3; k++)
+	for(k; k < i + boxes; k++)
  	{
 	sum += matrix[k][l];
-//	cout << "\nk-l:  " << k <<"," << l;
-	l--;
-	//cout << "\t sum: " << sum;
+	l++;
 	}
-	cout << endl;
+	
 	if(sum == s)
-	{
+	{ 
 		found = true;
-		i = 10;
-		j = 15;
 		*ii = i;
 		sum = 0;
+		pos_diag1++;
+		
+		if(s == 3 && boxes == 3 && diag1_status[j] != full)
+		{
+		identifier = diagonal_1;
+		check_XXX_(i, ll, identifier,boxes);
+		diag1_status[j] = ready_full;
+		cout << "sup";
+		}
+		else if(s == 4 && boxes == 4)
+		{
+		identifier = diagonal_1;
+		check_XXXX_(0,j,identifier);
+		}
+		else if(s == 3 && boxes == 4 && diag1_status[j] == not_full)
+		{
+		identifier = diagonal_1;
+		cout << "\nJ" << i<<j;
+		check_XOXX_(i,ll,identifier);
+		}
+
 	}
 	else 
 		sum = 0;
 	i++;
-	ll--;
-	}while (i < 4 && ll >= 2);
+	ll++;
+	}while (i < 4 && ll < 4);
 	j++;
-	}while(j < 6 );
+	}while(j < 3 );
 	/////////////////////////////////////
-
-	j = 5;
+	
+	j = 0;
 	i = 1;
 	do{
 		k = i;
 		l = j;
 		sum = 0;
-	for(k; k < i + 3; k++)
+	for(k; k < i + boxes; k++)
  	{
 	sum += matrix[k][l];
-//	cout << "\nk-l:  " << k <<"," << l;
-	l--;
-	//cout << "\t sum: " << sum;
+	l++;
 	}
-	cout << endl;
+	
 	if(sum == s)
 	{
+
 		found = true;
-		i = 10;
 		*ii = i;
 		sum = 0;
+		pos_diag1++;
+
+		//identifier = diagonal_1;
+		//check_XXX_(i, j, identifier,boxes);
+		
+		if(s == 3 && boxes == 3 && diag1_1_status != full)
+		{
+		identifier = diagonal_1;
+		check_XXX_(i, j, identifier,boxes);
+		diag1_1_status = ready_full;
+		cout << "ok";
+		}
+		else if(s == 4 && boxes == 4)
+		{
+		identifier = diagonal_1_1;
+		check_XXXX_(0,j,identifier);
+		}
+		else if(s == 3 && boxes == 4 && diag1_1_status == not_full)
+		{
+		identifier = diagonal_1_1;
+		check_XOXX_(i,j,identifier);
+		}
+
 	}
 	else 
 		sum = 0;
 	i++;
-	j--;
-	}while (i < 4 && j >= 3);
+	j++;
+	}while (i <= 6 - boxes && j <= 6 - boxes);
 	///////////////////
 
 		/////////////////////////////////////
 
-	j = 5;
+	j = 0;
 	i = 2;
 	do{
 		k = i;
 		l = j;
 		sum = 0;
-	for(k; k < i + 3; k++)
+	for(k; k < i + boxes; k++)
  	{
 	sum += matrix[k][l];
-//	cout << "\nk-l:  " << k <<"," << l;
-	l--;
-	//cout << "\t sum: " << sum;
+	l++;
 	}
-	cout << endl;
+
 	if(sum == s)
 	{
 		found = true;
-		i = 10;
 		*ii = i;
 		sum = 0;
+		pos_diag1++;
+
+//		identifier = diagonal_1;
+//		check_XXX_(i, j, identifier,boxes);
+
+		if(s == 3 && boxes == 3 && diag1_2_status != full)
+		{
+		identifier = diagonal_1;
+		check_XXX_(i, j, identifier,boxes);
+		diag1_2_status = ready_full;
+		}
+		else if(s == 4 && boxes == 4)
+		{
+		identifier = diagonal_1_2;
+		check_XXXX_(0,0,identifier);
+		}
+		else if(s == 3 && boxes == 4 && diag1_2_status == not_full)
+		{
+		identifier = diagonal_1_2;
+		check_XOXX_(i,j,identifier);
+		}
+
 	}
 	else 
 		sum = 0;
 	i++;
-	j--;
-	}while (i < 4 && j >= 4);
-	///////////////////
-
-	
+	j++;
+	}while (i <= 6 - boxes && j <= 6 - boxes);
+	///////////////////	
 	return found;
 }
 
-
-bool check_num_stones_diag2(int s,int* ii)
+bool check_num_stones_diag2(int s,int* ii,int boxes)
 {
 	int sum = 0;
 	bool found = false;
@@ -287,27 +638,44 @@ bool check_num_stones_diag2(int s,int* ii)
 		k = i;
 		l = ll;
 		sum = 0;
-	for(k; k < i + 3; k++)
+	for(k; k < i + boxes; k++)
  	{
 	sum += matrix[k][l];
-//	cout << "\nk-l:  " << k <<"," << l;
 	l--;
-	//cout << "\t sum: " << sum;
 	}
-	cout << endl;
+
 	if(sum == s)
 	{
 		found = true;
-		i = 10;
-		j = 15;
 		*ii = i;
 		sum = 0;
+		pos_diag2++;
+
+
+		if(s == 3 && boxes == 3 && diag2_status[j-3] != full)
+		{
+	
+		identifier = diagonal_2;
+		check_XXX_(i, ll, identifier,boxes);
+		diag2_status[j-3] = ready_full;
+		}
+		else if(s==4 && boxes == 4)
+		{
+		identifier = diagonal_2;    /// which diagonal to check d0 d1 d3 determined by j = 0,1,2
+		check_XXXX_(0,j-3,identifier);
+		}
+		else if(s == 3 && boxes == 4 && diag2_status[j-3] == not_full)
+		{
+		identifier = diagonal_2;
+		cout << "\nJ" << i<<j;
+		check_XOXX_(i,ll,identifier);
+		}
 	}
 	else 
 		sum = 0;
 	i++;
 	ll--;
-	}while (i < 4 && ll >= 2);
+	}while (i <= 6 - boxes && ll >= boxes - 1);
 	j++;
 	}while(j < 6 );
 	/////////////////////////////////////
@@ -318,26 +686,47 @@ bool check_num_stones_diag2(int s,int* ii)
 		k = i;
 		l = j;
 		sum = 0;
-	for(k; k < i + 3; k++)
+	for(k; k < i + boxes; k++)
  	{
 	sum += matrix[k][l];
-//	cout << "\nk-l:  " << k <<"," << l;
 	l--;
-	//cout << "\t sum: " << sum;
 	}
-	cout << endl;
+
 	if(sum == s)
 	{
 		found = true;
-		i = 10;
 		*ii = i;
 		sum = 0;
+		pos_diag2++;
+
+//		identifier = diagonal_2;
+//		check_XXX_(i, j, identifier,boxes);
+
+		if(s == 3 && boxes == 3 && diag2_1_status != full)
+		{
+		identifier = diagonal_2;
+		check_XXX_(i, j, identifier,boxes);
+		diag2_1_status = ready_full;
+		}
+		else if(s==4 && boxes == 4)
+		{
+		identifier = diagonal_2_1;
+		check_XXXX_(0,0,identifier);
+		}
+		else if(s == 3 && boxes == 4 && diag2_1_status == not_full)
+		{
+		identifier = diagonal_2_1;
+		cout << "\nJ" << i<<j;
+		check_XOXX_(i,j,identifier);
+		}
+
+
 	}
 	else 
 		sum = 0;
 	i++;
 	j--;
-	}while (i < 4 && j >= 3);
+	}while (i <= 6 - boxes && j >= boxes - 1);
 	///////////////////
 
 		/////////////////////////////////////
@@ -351,375 +740,47 @@ bool check_num_stones_diag2(int s,int* ii)
 	for(k; k < i + 3; k++)
  	{
 	sum += matrix[k][l];
-//	cout << "\nk-l:  " << k <<"," << l;
 	l--;
-	//cout << "\t sum: " << sum;
+
 	}
-	cout << endl;
+	
 	if(sum == s)
 	{
 		found = true;
-		i = 10;
 		*ii = i;
 		sum = 0;
+		pos_diag2++;
+
+//		identifier = diagonal_2;
+//		check_XXX_(i, j, identifier,boxes);
+
+		if(s == 3 && boxes == 3 && diag2_2_status != full)
+		{
+		identifier = diagonal_2;
+		check_XXX_(i, j, identifier,boxes);
+		diag2_2_status = ready_full;
+		}
+		else if(s==4 && boxes == 4)
+		{
+		identifier = diagonal_2_2;
+		check_XXXX_(0,0,identifier);
+		}
+		else if(s == 3 && boxes == 4 && diag2_2_status == not_full)
+		{
+		identifier = diagonal_2_2;
+		cout << "\nJ" << i<<j;
+		check_XOXX_(i,j,identifier);
+		}
+
 	}
 	else 
 		sum = 0;
 	i++;
 	j--;
-	}while (i < 4 && j >= 4);
+	}while (i <= 6 - boxes && j >= boxes - 1);
 	///////////////////
 
 	
 	return found;
 }
 };
-	/*
-void see()
-{
-	cout << "\n";
-for (int i = 0; i < 6; i++)
-	{
-		for(int j = 0; j < 6; j++)
-		{
-			cout << "\t" << matrix[i][j];
-			if((j == 5)) 
-			cout << "\n\n";
-		}
-	}
-
-
-}
-
-
-
-bool AI_convert(SDL_Rect* r)
-{
-bool found = false;
-
-if(check_first(r)==false)
-	{
-
-	if(computer_move(r) == true)
-		{
-			found = true;
-			cout << "\ncomputer move success";
-		}
-	else
-		cout << "\n2. computer move returned false";
-	}
-else
-{
-	found = true;
-	cout << "\ncheck first returned true";
-}
-	return found;
-}
-
-bool check_first(SDL_Rect* r)
-{
-	int i = 0;
-	int j = 0;
-
-	bool found = false;
-//////////////
-	if(find_sum(3,&i))
-	{
-	found = true;
-	for(int j = 0; j < 6;j++)
-	{
-	if(matrix[i][j] == 0)
-		{
-		 matrix[i][j] = 10;
-		 r->x = 100 + j*100;
-		 r->y = 100 +i*100;
-		 i = 6;
-		 j= 6;
-		}
-	}
-	}
-/////////////////
-	if(find_sum_vert(3,&j) && found == false)
-	{
-	found = true;
-	for(int i = 0; i < 6;i++)
-	{
-	if(matrix[i][j] == 0)
-		{
-		 matrix[i][j] = 10;
-		 r->x = 100 + j*100;
-		 r->y = 100 +i*100;
-		 i = 6;
-		 j= 6;
-		}
-	}
-	}//////////////////////////
-
-return found;
-}
-
-bool computer_move(SDL_Rect* r)
-{
-	int i = 0;
-	int j = 0;
-	int sum = 0;
-	bool found = false;
-//////////////
-	if(find_sum(30,&i))
-	{
-	found = true;
-	for(int j = 0; j < 6;j++)
-	{
-	if(matrix[i][j] == 0)
-		{
-		 matrix[i][j] = 10;
-		 r->x = 100 + j*100;
-		 r->y = 100 +i*100;
-		 i = 6;
-		 j= 6;
-		}
-	}
-	}
-//////////////////
-	if(find_sum_vert(30,&j))
-	{
-	found = true;
-	for(int i = 0; i < 6; i++)
-	{
-	if(matrix[i][j] == 0)
-		{
-		 matrix[i][j] = 10;
-		 r->x = 100 + j*100;
-		 r->y = 100 +i*100;
-		 i = 6;
-		 j= 6;
-		}
-	}
-	}
-return found;
-//////////////////////////
-
-}
-
-bool find_sum(int s,int* ii)
-{
-	int sum = 0;
-	bool found = false;
-	int i = 0;    // the row whose some is S
-	do
-	{
-	sum = 0;
-	for(int j = 0; j < 6;j++)
-	{
-	sum += matrix[i][j];
-	}
-	//cout << "\nsum_up: " << sum;
-	if(sum == s)
-	{
-		found = true;
-		*ii = i;
-		i = 6;
-	}
-	i++;
-	}while(i < 6 );
-
-return found;
-}
-
-bool find_sum_vert(int s,int* jj)
-{
-	int sum = 0;
-	bool found = false;
-	int j = 0;
-	do
-	{
-	sum = 0;
-	for(int i = 0; i < 6; i++)
-	{
-	sum += matrix[i][j];
-	}
-	//cout << "\nsum: " << sum;
-	if(sum == s)
-	{
-		found = true;
-		*jj = j;
-		j = 6;
-	}
-	j++;
-	}while(j < 6 );
-
-return found;
-}
-
-bool create_fork(SDL_Rect* r)
-{
-	int i = 0;
-	int j = 0;
-	int sum = 0;
-	bool found = false;
-//////////////
-	if(find_sum(40,&i) == true)
-	{
-	found = true;
-	//cout << "I: " << i << endl;
-	for(int j = 0; j < 6;j++)
-	{
-	if(matrix[i][j] == 0)
-		{
-		 matrix[i][j] = 10;
-		 r->x = 100 + j*100;
-		 r->y = 100 +i*100;
-		 i = 6;
-		 j= 6;
-		}
-	}
-	}
-//////////////////
-	if(find_sum_vert(40,&j) == true)
-	{
-	found = true;
-	for(int i = 0; i < 6; i++)
-	{
-	if(matrix[i][j] == 0)
-		{
-		 matrix[i][j] = 10;
-		 r->x = 100 + j*100;
-		 r->y = 100 +i*100;
-		 i = 6;
-		 j= 6;
-		}
-	}
-	}
-return found;
-//////////////////////////
-}
-	
-void make_move(SDL_Rect* q)
-{
-	cout << "\nmaking moves";
-	bool success = false;
-	int i = 0; 
-	int j = 0;
-
-	  if(success == false)
-		{
-		cout <<"\nFilling empty rows";
-	      for(int i = 0; i < 6; i++)
-		  {
-		   if(row[i] != full)
-		   {
-			take_move(i,100,q);
-			success = true;
-			i = 6;
-		   }
-		  }
-		}
-		
-	 if(success == false)
-	 {
-	  cout << "\nFilling empty columns";
-		{
-	      for(int i = 0; i < 6; i++)
-		  {
-		   if(col[i] != full)
-		   {
-			take_move(100,i,q);
-			success = true;
-			i = 6;
-		   }
-		  }
-		}
-	 }
-	
-	 if(success == false)
-	{
-	cout << "\nempty rows not found";
-	for(int i = 0; i < 6; i++)
-	{
-		for(int j = 0; j < 6; j++)
-		{
-	if(matrix[i][j] == 0)
-		{
-		 matrix[i][j] = 10;
-		 q->x = 100 + j*100;
-		 q->y = 100 + i*100;
-		 i = 6;
-		 j= 6;
-		}
-		}
-	}
-	}
-}
-
-void take_move(int i, int j, SDL_Rect* q)
-{
-	if(j == 100)
-	{
-cout << "\nvRow number = " << i << " and sum of row is " << matrix[i][3]; 
-int z = 0;
-while(z < 6)
-{
-if(matrix[i][z] == 0)
-	{
-		matrix[i][z] = 10;
-		q->x =  100 + z*100;
-		q->y = 100 + i*100;
-		z = 6;
-		row[i] = comp_row;
-	}
-z++;
-}
-	}
-else
-	{
-cout << "\nvColumn number = " << j << " and sum of column is " << matrix[3][j];
-int z = 0;
-while(z < 6)
-{
-if(matrix[z][j] == 0)
-		{
-matrix[z][j] = 10;
-q->y = 100 + z*100;
-q->x = 100 + j*100;
-z = 6;
-col[j] = comp_col;
-	}
-z++;
-}
-}
-}
- 
-bool check_win(int i)
-{
-bool win = false;
-int dummy = 0;
-if(i == 0)
-{
-if(find_sum(60,&dummy) == true)
-{
-	cout << " \n\n\n\n\n\n\n\nComputer Wins";
-	win = true;
-}
-else if(find_sum_vert(60,&dummy) == true)
-{
-	cout << "\n\n\n\n\n\n\n\n Computer Wins";
-	win = true;
-}
-}
-else if(i == 1)
-	{
-if(find_sum(6,&dummy) == true)
-{
-	cout << " \n\n\n\n\n\n\n\nPlayer Wins";
-	win = true;
-}
-else if(find_sum_vert(6,&dummy) == true)
-{
-	cout << " \n\n\n\n\n\n\n\n\n\n\nPlayer Wins";	
-	win = true;
-}
-	}
-return win;
-}
-};
-*/

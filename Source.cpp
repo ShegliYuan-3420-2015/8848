@@ -146,7 +146,7 @@ else if(e.type  == SDL_MOUSEBUTTONDOWN)
 
 	rec.player_move(x,y,&s);
    SDL_RenderCopy(rend,text,NULL,&s);
-
+   
    rec.computer_move();
    SDL_RenderCopy(rend,text2,NULL,&c);
 }

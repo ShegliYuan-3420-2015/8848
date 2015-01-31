@@ -10,7 +10,8 @@ class record
 protected:
 	int matrix[6][6];
 	int matrix_clone[6][6];
-	enum possible_rowscol_t {full,not_full,comp_row,comp_col};
+
+	enum possible_rowscol_t {full,not_full,ready_full,comp_row,comp_col};
 	possible_rowscol_t *row,*col;
 	possible_rowscol_t row_status[6], col_status[6],diag1_status[3],diag1_1_status,diag1_2_status,diag2_status[3],diag2_1_status,diag2_2_status;
 	
@@ -38,7 +39,7 @@ public:
 		if( i < 3)
 		{
 		diag1_status[i] = not_full;
-		diag1_status[i] = not_full;
+		diag2_status[i] = not_full;
 		}
 		row[i] = not_full;
 		col[i] = not_full;
@@ -147,6 +148,34 @@ bool computer_move()
 	{
 	cout << " \nPossible diagonal two = " << pos_diag2;	}
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		////////////////////////////////////////////////////////////////////////// check for 3 stones in a row and take action
+	boxes_to_count = 4;
+	sum_of_boxes = 3;
+	cout << " \nchecking for misssing ";
+	pos_row = pos_col = pos_diag1 = pos_diag2 = 0;
+
+	if(check_num_stones_row(sum_of_boxes,&i,boxes_to_count) == true)
+	{
+	cout << " \nPossible rows = " << pos_row;
+	}
+
+	if(check_num_stones_col(sum_of_boxes,&i,boxes_to_count) == true)
+	{
+	cout << " \nPossible columns = " << pos_col;
+	}
+
+	if(check_num_stones_diag1(sum_of_boxes,&i,boxes_to_count) == true)
+	{
+	cout << " \nPossible diagonal one = " << pos_diag1;
+	}
+
+	if(check_num_stones_diag2(sum_of_boxes,&i,boxes_to_count) == true)
+	{
+	cout << " \nPossible diagonal two = " << pos_diag2;	}
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 	see();
 	return true;
 }
@@ -195,7 +224,7 @@ void check_XXX_(int i, int j, row_cols_diag identifier,int boxes)
 		matrix_clone[i+boxes][j+boxes]++;
 		}
 		break;
-	case diagonal_1_1:
+/*	case diagonal_1_1:
 		if(((i-1) >= 0) && ((j - 1) >= 0))
 		{
 		if(matrix[i-1][j-1] == 0)
@@ -222,7 +251,7 @@ void check_XXX_(int i, int j, row_cols_diag identifier,int boxes)
 		matrix_clone[i+boxes][j+boxes]++;
 		}
 
-		break;
+		break;*/
 	case diagonal_2:
 		if(((i-1) >= 0) && ((j + 1) <= 5))
 		{
@@ -235,32 +264,6 @@ void check_XXX_(int i, int j, row_cols_diag identifier,int boxes)
 		matrix_clone[i+boxes][j-boxes]++;
 		}
 		break;
-/*	case diagonal_2_1:
-		if(((i-1) >= 0) && ((j + 1) <= 5))
-		{
-		if(matrix[i-1][j+1] == 0)
-		matrix_clone[i-1][j+1]++;
-		}
-	    if(((i+box) <= 5) && ((j - box) >= 0))
-		{
-		if(matrix[i+box][j-box] == 0)
-		matrix_clone[i+box][j-box]++;
-		}
-		break;
-
-	case diagonal_2_2:
-		if(((i-1) >= 0) && ((j + 1) <= 5))
-		{
-		if(matrix[i-1][j+1] == 0)
-		matrix_clone[i-1][j+1]++;
-		}
-	    if(((i+box) <= 5) && ((j - box) >= 0))
-		{
-		if(matrix[i+box][j-box] == 0)
-		matrix_clone[i+box][j-box]++;
-		}
-		break;
-*/
 	}
 }
 
@@ -294,6 +297,62 @@ void check_XXXX_(int i, int j, row_cols_diag identifier)
 		break;
 	}
 }
+
+void check_XOXX_(int i, int j, row_cols_diag identifier)
+{
+	switch(identifier)
+	{
+	case rows:
+		if(matrix[i][j+1] == 0)
+			matrix_clone[i][j+1]++;
+		else
+		 matrix_clone[i][j+2]++;
+			break;
+	case columns:
+		if(matrix[i+1][j] == 0)
+			matrix_clone[i+1][j]++;
+		else
+		 matrix_clone[i+2][j]++;
+			break;
+	case diagonal_1:
+		if(matrix[i+1][j+1] == 0)
+			matrix_clone[i+1][j+1]++;
+		else
+		 matrix_clone[i+2][j+2]++;
+			break;
+	case diagonal_1_1:
+		if(matrix[i+1][j+1] == 0)
+			matrix_clone[i+1][j+1]++;
+		else
+		 matrix_clone[i+2][j+2]++;
+		break;
+	case diagonal_1_2:
+		if(matrix[i+1][j+1] == 0)
+			matrix_clone[i+1][j+1]++;
+		else
+		 matrix_clone[i+2][j+2]++;
+		break;
+	case diagonal_2:
+		if(matrix[i+1][j-1] == 0)
+			matrix_clone[i+1][j-1]++;
+		else
+		 matrix_clone[i+2][j-2]++;
+			break;
+	case diagonal_2_1:
+		if(matrix[i+1][j-1] == 0)
+			matrix_clone[i+1][j-1]++;
+		else
+		 matrix_clone[i+2][j-2]++;
+			break;
+	case diagonal_2_2:
+		if(matrix[i+1][j-1] == 0)
+			matrix_clone[i+1][j-1]++;
+		else
+		 matrix_clone[i+2][j-2]++;
+			break;
+	}
+}
+
 bool check_num_stones_row(int s,int* ii,int boxes)
 {
 	int sum = 0;
@@ -302,8 +361,8 @@ bool check_num_stones_row(int s,int* ii,int boxes)
 	int k = 0;
 	int j = 0;// the row whose some is S
 
-	while(row_status[i] != not_full && i < 6)
-	i++;
+	//while(row_status[i] == full && i < 6)
+	//i++;
 
 	do
 	{
@@ -326,11 +385,18 @@ bool check_num_stones_row(int s,int* ii,int boxes)
 		{
 		identifier = rows;
 		check_XXX_(i, j, identifier,boxes); 
+		row_status[i] = ready_full;
 		}
 		else if( s == 4 && boxes == 4)
 		{
 		identifier = rows;
 		check_XXXX_(i,0,identifier);	
+		}
+	else if(s == 3 && boxes == 4 && row_status[i] == not_full)
+		{
+			identifier = rows;
+		cout << "\nJ" << i<<j;
+			check_XOXX_(i,j,identifier);
 		}
 	}
 
@@ -338,8 +404,8 @@ bool check_num_stones_row(int s,int* ii,int boxes)
 	}while (j <= 6 - boxes);
 	i++;
 
-	while(row_status[i] != not_full && i < 6)
-	i++;
+//	while(row_status[i] != not_full && i < 6)
+//	i++;
 	}while(i < 6 );
 
 return found;
@@ -369,15 +435,21 @@ bool check_num_stones_col(int s,int* ii,int boxes)
 		*ii = i;
 		pos_col++;
 
-		if(s == 3 && boxes == 3 && col_status[j] == not_full)
+		if(s == 3 && boxes == 3 && col_status[j] != full)
 		{
 		identifier = columns;
 		check_XXX_(i, j, identifier,boxes); 
+		col_status[j] = ready_full;
 		}
 		else if( s == 4 && boxes == 4)
 		{
 		identifier = columns;
 		check_XXXX_(0,j,identifier);	
+		}
+		else if(s == 3 && boxes == 4 && col_status[j] == not_full)
+		{
+		identifier = columns;
+		check_XOXX_(i,j,identifier);
 		}
 
 	}
@@ -420,15 +492,23 @@ bool check_num_stones_diag1(int s,int* ii,int boxes)
 		sum = 0;
 		pos_diag1++;
 		
-		if(s == 3 && boxes == 3 && diag1_status[j] == not_full)
+		if(s == 3 && boxes == 3 && diag1_status[j] != full)
 		{
 		identifier = diagonal_1;
 		check_XXX_(i, ll, identifier,boxes);
+		diag1_status[j] = ready_full;
+		cout << "sup";
 		}
 		else if(s == 4 && boxes == 4)
 		{
 		identifier = diagonal_1;
 		check_XXXX_(0,j,identifier);
+		}
+		else if(s == 3 && boxes == 4 && diag1_status[j] == not_full)
+		{
+		identifier = diagonal_1;
+		cout << "\nJ" << i<<j;
+		check_XOXX_(i,ll,identifier);
 		}
 
 	}
@@ -464,17 +544,23 @@ bool check_num_stones_diag1(int s,int* ii,int boxes)
 		//identifier = diagonal_1;
 		//check_XXX_(i, j, identifier,boxes);
 		
-		if(s == 3 && boxes == 3 && diag1_1_status == not_full)
+		if(s == 3 && boxes == 3 && diag1_1_status != full)
 		{
 		identifier = diagonal_1;
 		check_XXX_(i, j, identifier,boxes);
+		diag1_1_status = ready_full;
+		cout << "ok";
 		}
 		else if(s == 4 && boxes == 4)
 		{
 		identifier = diagonal_1_1;
 		check_XXXX_(0,j,identifier);
 		}
-
+		else if(s == 3 && boxes == 4 && diag1_1_status == not_full)
+		{
+		identifier = diagonal_1_1;
+		check_XOXX_(i,j,identifier);
+		}
 
 	}
 	else 
@@ -500,7 +586,6 @@ bool check_num_stones_diag1(int s,int* ii,int boxes)
 
 	if(sum == s)
 	{
-
 		found = true;
 		*ii = i;
 		sum = 0;
@@ -509,17 +594,22 @@ bool check_num_stones_diag1(int s,int* ii,int boxes)
 //		identifier = diagonal_1;
 //		check_XXX_(i, j, identifier,boxes);
 
-		if(s == 3 && boxes == 3 && diag1_2_status == not_full)
+		if(s == 3 && boxes == 3 && diag1_2_status != full)
 		{
 		identifier = diagonal_1;
 		check_XXX_(i, j, identifier,boxes);
+		diag1_2_status = ready_full;
 		}
 		else if(s == 4 && boxes == 4)
 		{
 		identifier = diagonal_1_2;
 		check_XXXX_(0,0,identifier);
 		}
-
+		else if(s == 3 && boxes == 4 && diag1_2_status == not_full)
+		{
+		identifier = diagonal_1_2;
+		check_XOXX_(i,j,identifier);
+		}
 
 	}
 	else 
@@ -527,12 +617,9 @@ bool check_num_stones_diag1(int s,int* ii,int boxes)
 	i++;
 	j++;
 	}while (i <= 6 - boxes && j <= 6 - boxes);
-	///////////////////
-
-	
+	///////////////////	
 	return found;
 }
-
 
 bool check_num_stones_diag2(int s,int* ii,int boxes)
 {
@@ -570,11 +657,18 @@ bool check_num_stones_diag2(int s,int* ii,int boxes)
 	
 		identifier = diagonal_2;
 		check_XXX_(i, ll, identifier,boxes);
+		diag2_status[j-3] = ready_full;
 		}
 		else if(s==4 && boxes == 4)
 		{
 		identifier = diagonal_2;    /// which diagonal to check d0 d1 d3 determined by j = 0,1,2
 		check_XXXX_(0,j-3,identifier);
+		}
+		else if(s == 3 && boxes == 4 && diag2_status[j-3] == not_full)
+		{
+		identifier = diagonal_2;
+		cout << "\nJ" << i<<j;
+		check_XOXX_(i,ll,identifier);
 		}
 	}
 	else 
@@ -610,14 +704,20 @@ bool check_num_stones_diag2(int s,int* ii,int boxes)
 
 		if(s == 3 && boxes == 3 && diag2_1_status != full)
 		{
-		
 		identifier = diagonal_2;
 		check_XXX_(i, j, identifier,boxes);
+		diag2_1_status = ready_full;
 		}
 		else if(s==4 && boxes == 4)
 		{
 		identifier = diagonal_2_1;
 		check_XXXX_(0,0,identifier);
+		}
+		else if(s == 3 && boxes == 4 && diag2_1_status == not_full)
+		{
+		identifier = diagonal_2_1;
+		cout << "\nJ" << i<<j;
+		check_XOXX_(i,j,identifier);
 		}
 
 
@@ -658,13 +758,19 @@ bool check_num_stones_diag2(int s,int* ii,int boxes)
 		{
 		identifier = diagonal_2;
 		check_XXX_(i, j, identifier,boxes);
+		diag2_2_status = ready_full;
 		}
 		else if(s==4 && boxes == 4)
 		{
 		identifier = diagonal_2_2;
 		check_XXXX_(0,0,identifier);
 		}
-
+		else if(s == 3 && boxes == 4 && diag2_2_status == not_full)
+		{
+		identifier = diagonal_2_2;
+		cout << "\nJ" << i<<j;
+		check_XOXX_(i,j,identifier);
+		}
 
 	}
 	else 
